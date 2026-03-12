@@ -12221,6 +12221,8 @@ VmaDefragmentationContext_T::VmaDefragmentationContext_T(
         m_BlockVectorCount = 1;
         m_PoolBlockVector = &info.pool->m_BlockVector;
         m_pBlockVectors = &m_PoolBlockVector;
+
+        VmaMutexLockWrite lock(m_PoolBlockVector->m_Mutex, hAllocator->m_UseMutex);
         m_PoolBlockVector->SetIncrementalSort(false);
         m_PoolBlockVector->SortByFreeSize();
     }
@@ -12234,6 +12236,7 @@ VmaDefragmentationContext_T::VmaDefragmentationContext_T(
             VmaBlockVector* vector = m_pBlockVectors[i];
             if (vector != VMA_NULL)
             {
+                VmaMutexLockWrite lock(vector->m_Mutex, hAllocator->m_UseMutex);
                 vector->SetIncrementalSort(false);
                 vector->SortByFreeSize();
             }
@@ -12264,6 +12267,7 @@ VmaDefragmentationContext_T::~VmaDefragmentationContext_T()
 {
     if (m_PoolBlockVector != VMA_NULL)
     {
+        VmaMutexLockWrite lock(m_PoolBlockVector->m_Mutex, m_PoolBlockVector->m_hAllocator->m_UseMutex);
         m_PoolBlockVector->SetIncrementalSort(true);
     }
     else
@@ -12272,7 +12276,10 @@ VmaDefragmentationContext_T::~VmaDefragmentationContext_T()
         {
             VmaBlockVector* vector = m_pBlockVectors[i];
             if (vector != VMA_NULL)
+            {
+                VmaMutexLockWrite lock(vector->m_Mutex, vector->m_hAllocator->m_UseMutex);
                 vector->SetIncrementalSort(true);
+            }
         }
     }
 
